@@ -14,9 +14,5 @@ Thumbs.db
 # Temp files
 temp/
 
-# Uvicorn / local filess
-uvicorn
-python
-
 # Logs
 *.log
