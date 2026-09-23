@@ -1,119 +1,219 @@
-# 🏭 SmartFab AI
+# 🏭 SmartFab
 
-AI-Powered Smart Manufacturing Planning & Scheduling Platform
+**Multi-Factory Manufacturing Planning & Scheduling Platform**
 
-SmartFab AI transforms production demand forecasts into optimized manufacturing schedules through an automated planning pipeline that generates jobs, assigns factories, schedules production activities, and visualizes results using interactive Gantt charts.
+SmartFab is a manufacturing planning prototype that transforms production demand data into constraint-aware production schedules through an automated planning pipeline.
+
+The system generates production jobs, creates process routings, assigns products to compatible factories, schedules operations across production lines, accounts for changeovers and downtime, validates delivery deadlines, and visualizes the resulting production plan using interactive Gantt charts.
+
+> **Project Status:** Portfolio and educational prototype. The application is designed and tested for local execution and is not currently deployed as a production service.
 
 ---
 
 ## 🚀 Overview
 
-Manufacturing operations often require multiple manual planning steps before production can begin.
+Manufacturing planning requires coordinating demand, product routings, factory capabilities, production lines, changeovers, downtime, and delivery requirements.
 
-SmartFab AI automates this process by converting uploaded demand forecasts into executable production schedules.
+SmartFab integrates these planning steps into a single automated workflow.
 
-The platform performs:
+Given production demand data, the platform:
 
-* Demand Processing
-* Job Generation
-* Process Routing
-* Factory Assignment
-* Production Scheduling
-* Gantt Chart Visualization
+* Generates manufacturing jobs based on demand and lot sizes
+* Builds process routings for individual jobs
+* Assigns products to factories based on manufacturing requirements
+* Validates factory and process compatibility
+* Schedules operations across eligible production lines
+* Accounts for processing times and product changeovers
+* Incorporates planned and operational downtime
+* Checks production schedules against job deadlines
+* Generates interactive Gantt charts for schedule visualization
 
-The result is a streamlined workflow that helps planners reduce manual effort and improve production visibility.
+The project explores manufacturing planning, production scheduling, and decision support in a multi-factory production environment.
 
 ---
 
 ## 🎯 Key Features
 
-### 📁 Demand Forecast Upload
+### 📁 Demand Input
 
-Upload production demand files in CSV format.
+Accept production demand data in CSV format and use it as the starting point for the planning workflow.
 
 ### ⚙️ Automated Job Generation
 
-Convert demand forecasts into manufacturing jobs.
+Convert product demand into individual manufacturing jobs based on product-specific lot sizes and required delivery dates.
 
 ### 🔄 Process Routing
 
-Automatically generate process flows for each product.
+Generate the required manufacturing process sequence for each production job.
 
 ### 🏭 Factory Assignment
 
-Assign production jobs to appropriate factories or production units.
+Assign products to factories according to manufacturing requirements and available factory capabilities.
+
+The current implementation uses deterministic rule-based assignment logic.
 
 ### 📅 Production Scheduling
 
-Generate executable manufacturing schedules.
+Generate production schedules while considering:
 
-### 📊 Interactive Gantt Charts
+* Factory assignment
+* Process sequence
+* Production-line availability
+* Processing time
+* Product changeover time
+* Planned downtime
+* Fixed blocked periods
+* Process compatibility
+* Job deadlines
 
-Visualize schedules and production timelines using Plotly.
+For each operation, the scheduler evaluates eligible production lines within the assigned factory and selects a feasible line based on completion time.
 
-### 🌐 Web API
+### 🛠 Planned Downtime Scheduling
 
-FastAPI-powered backend for integration with dashboards and enterprise systems.
+Generate planned downtime windows for production lines while considering process-specific scheduling preferences and minimum spacing between downtime periods.
+
+### ⚠️ Deadline Validation
+
+Compare the final completion time of each job against its required deadline and identify deadline violations.
+
+### 📊 Interactive Gantt Visualization
+
+Visualize production schedules, line utilization, and operation timelines through interactive Plotly Gantt charts.
+
+### 🌐 REST API
+
+Use a FastAPI backend to trigger the planning pipeline and interact with the application locally.
 
 ---
 
 ## 🏗 System Architecture
 
 ```text
-Demand Forecast CSV
+Production Demand
+       │
+       ▼
+┌──────────────────┐
+│  Job Generator   │
+└────────┬─────────┘
          │
          ▼
- Job Generator
+┌──────────────────┐
+│ Routing Generator│
+└────────┬─────────┘
          │
          ▼
- Routing Generator
+┌──────────────────┐
+│Factory Assignment│
+└────────┬─────────┘
          │
          ▼
- Factory Assignment
+┌──────────────────┐
+│Feasibility Check │
+└────────┬─────────┘
          │
          ▼
- Production Scheduler
+┌──────────────────┐
+│ Production       │
+│ Scheduler        │
+└────────┬─────────┘
+         │
+         ├──────────────► Deadline Validation
          │
          ▼
- Gantt Chart Generator
+┌──────────────────┐
+│ Gantt Generator  │
+└────────┬─────────┘
          │
          ▼
- Production Plan Dashboard
-```
+   Production Plan
 
----
+🧠 Scheduling Logic
 
-## ⚡ Technology Stack
+SmartFab currently uses deterministic planning rules and scheduling heuristics.
 
-### Backend
+Factory Assignment
 
-* FastAPI
-* Python
+Products are assigned to factories according to their required manufacturing processes and factory capabilities.
 
-### Data Processing
+The assignment logic ensures that production requirements are compatible with the selected facility.
 
-* Pandas
+Factory Feasibility Validation
 
-### Visualization
+Before scheduling begins, SmartFab verifies that all processes required by each job can be performed within the job's assigned factory.
 
-* Plotly
+If a required process is unavailable, the planning workflow stops and reports the feasibility issue instead of allowing the job to switch factories.
 
-### Deployment
+Production-Line Selection
 
-* Uvicorn
+For each production operation, the scheduler:
 
-### API Features
+Identifies production lines capable of performing the required process
+Restricts candidates to the job's assigned factory
+Calculates applicable product changeover time
+Determines the earliest possible start time
+Accounts for blocked periods and planned downtime
+Calculates the resulting completion time
+Selects the feasible line with the earliest completion time
+Schedule Constraints
 
-* REST API
-* File Upload Support
-* Automated Workflow Execution
+The scheduling workflow considers:
 
----
+Process precedence
+Factory compatibility
+Production-line availability
+Processing duration
+Product-family changeovers
+Fixed blocked time windows
+Planned downtime
+Delivery deadlines
 
-## 📂 Project Structure
+Additional validation ensures that each job remains within its assigned factory throughout its production routing.
 
-```text
-smartfab-ai/
+⏱ Changeover Handling
+
+SmartFab incorporates changeover time when consecutive products are processed on the same production line.
+
+Changeover requirements can vary depending on whether the next job belongs to:
+
+The same product
+The same product family
+A different product family
+
+These transition times are incorporated before the next production operation begins.
+
+🛠 Downtime Handling
+
+The scheduling engine accounts for multiple forms of production downtime.
+
+Fixed Blocked Windows
+
+Predefined time periods can be blocked from production scheduling.
+
+Planned Downtime
+
+Production lines can receive planned downtime windows based on process-specific time preferences and minimum spacing requirements.
+
+Operational Downtime
+
+Additional downtime can be incorporated into the generated schedule based on expected operating intervals and repair durations.
+
+⚡ Technology Stack
+Backend
+Python
+FastAPI
+Uvicorn
+Data Processing
+Pandas
+Visualization
+Plotly
+Data Storage
+CSV-based input, intermediate, and output datasets
+API
+REST API
+File upload support
+Automated planning workflow
+📂 Project Structure
+smartfab/
 │
 ├── app.py
 ├── requirements.txt
@@ -127,207 +227,183 @@ smartfab-ai/
 │   └── gantt_chart.py
 │
 ├── data/
-│   └── demand.csv
+│   ├── demand.csv
+│   ├── factories_capacities.csv
+│   ├── changeover.csv
+│   └── downtime.csv
 │
 ├── database/
 │   ├── generated_jobs.csv
 │   ├── job_process_flow.csv
-│   └── schedule_final.csv
+│   ├── product_factory_assignment.csv
+│   ├── schedule_baseline.csv
+│   ├── schedule_final.csv
+│   ├── planned_downtime_schedule.csv
+│   └── deadline_violations.csv
 │
 └── gantt_chart.html
-```
+🔄 Planning Workflow
+1. Load Production Demand
 
----
+The workflow begins with product demand quantities and required delivery dates.
 
-## 🔄 Workflow
+2. Generate Production Jobs
 
-### Step 1
+Demand quantities are divided into individual manufacturing jobs according to product-specific lot sizes.
 
-Upload demand forecast data.
+3. Generate Process Routings
 
-### Step 2
+Each job receives the manufacturing process sequence required for its product.
 
-Generate manufacturing jobs.
+4. Assign Factories
 
-### Step 3
+Products are assigned to compatible factories based on their manufacturing requirements.
 
-Create routing process flows.
+5. Validate Factory Feasibility
 
-### Step 4
+The system verifies that every required process can be performed within the assigned factory before scheduling begins.
 
-Assign jobs to production facilities.
+6. Schedule Production
 
-### Step 5
+Operations are assigned to eligible production lines while accounting for process precedence, availability, changeovers, blocked periods, and planned downtime.
 
-Generate optimized schedules.
+7. Apply Operational Downtime
 
-### Step 6
+Additional expected downtime is incorporated into the baseline production schedule.
 
-Visualize production timelines through Gantt charts.
+8. Validate Deadlines
 
----
+The final completion time of each job is compared with its required delivery deadline.
 
-## 📡 API Endpoints
+9. Visualize the Schedule
 
-### Health Check
+The completed production plan is displayed through an interactive Gantt chart.
 
-```http
+📡 API Endpoints
+Health Check
 GET /
-```
 
-Response:
+Example response:
 
-```json
 {
   "message": "SmartFab API is running"
 }
-```
-
-### Run Planning Pipeline
-
-```http
+Run Planning Pipeline
 POST /run
-```
-
-Upload:
-
-```text
-multipart/form-data
-```
 
 Input:
 
-```text
+multipart/form-data
 demand.csv
-```
 
-Output:
+Example response:
 
-```json
 {
   "status": "success",
   "message": "Pipeline completed"
 }
-```
-
-### Web Interface
-
-```http
+Web Interface
 GET /ui
-```
 
-Launches the SmartFab dashboard interface.
+Opens the local SmartFab interface.
 
----
-
-## 🛠 Installation
-
-### Clone Repository
-
-```bash
-git clone https://github.com/jasontruong11513/smartfab-ai.git
-
-cd smartfab-ai
-```
-
-### Create Virtual Environment
-
-```bash
+🛠 Running Locally
+Clone the Repository
+git clone <your-repository-url>
+cd smartfab
+Create a Virtual Environment
 python -m venv venv
-```
 
-Activate:
+Activate the environment on Windows:
 
-Windows
-
-```bash
 venv\Scripts\activate
-```
 
-Mac/Linux
+On macOS/Linux:
 
-```bash
 source venv/bin/activate
-```
-
-### Install Dependencies
-
-```bash
+Install Dependencies
 pip install -r requirements.txt
-```
-
-### Start Application
-
-```bash
+Start the Application
 uvicorn app:app --reload
-```
 
-Application:
+Local application:
 
-```text
 http://127.0.0.1:8000
-```
 
-Swagger API:
+Swagger API documentation:
 
-```text
 http://127.0.0.1:8000/docs
-```
 
----
+SmartFab is currently designed and tested for local execution. Public cloud deployment is not part of the current implementation.
 
-## 📈 Example Outputs
+📈 Generated Outputs
 
-Generated files:
+The planning pipeline generates intermediate and final datasets such as:
 
-```text
 generated_jobs.csv
 job_process_flow.csv
+product_factory_assignment.csv
+schedule_baseline.csv
 schedule_final.csv
+planned_downtime_schedule.csv
+deadline_violations.csv
 gantt_chart.html
-```
 
-These outputs provide complete visibility into production planning and scheduling activities.
+These outputs make the planning workflow traceable from production demand through factory assignment, scheduling, and deadline validation.
 
----
+🎓 Applications
 
-## 🎓 Use Cases
+SmartFab explores concepts related to:
 
-* Smart Manufacturing
-* Factory Operations Planning
-* Production Scheduling
-* Supply Chain Optimization
-* Manufacturing Analytics
-* Capacity Planning
-* Digital Factory Initiatives
+Manufacturing Planning
+Production Scheduling
+Multi-Factory Production Planning
+Factory Allocation
+Capacity Planning
+Manufacturing Analytics
+Operations Management
+Supply Chain Decision Support
+Smart Manufacturing
+⚠️ Current Limitations
 
----
+SmartFab is a portfolio prototype and does not represent a production-grade manufacturing planning system.
 
-## 🔮 Future Improvements
+The current implementation:
 
-Potential enhancements:
+Uses rule-based factory assignment
+Uses heuristic production scheduling
+Uses CSV files rather than a production database
+Does not guarantee a globally optimal production schedule
+Uses simplified representations of manufacturing capacity and operating conditions
+Does not currently integrate with ERP or MES systems
+Is designed and tested primarily for local execution
 
-* Machine Learning Demand Forecasting
-* Reinforcement Learning Scheduling
-* Multi-Factory Optimization
-* Capacity Constraints Modeling
-* ERP Integration
-* Real-Time Shop Floor Monitoring
-* Predictive Maintenance Integration
-* AI Copilot for Production Planning
+These limitations provide opportunities for future development.
 
----
+🔮 Future Improvements
 
-## 👨‍💻 Author
+Potential extensions include:
+
+Linear and mixed-integer programming for production optimization
+Dynamic multi-factory allocation
+More detailed production capacity constraints
+Labor and workforce constraints
+Inventory availability constraints
+Material availability constraints
+Scenario and what-if analysis
+Production cost modeling
+ERP and MES integration
+Real-time shop-floor data integration
+Predictive maintenance
+Cloud deployment
+Advanced production planning dashboards
+👨‍💻 Author
 
 Jason Truong
 
-MS Information Systems Candidate
-
+Master of Science in Information Systems Candidate
 California State University, Long Beach
 
----
+📄 License
 
-## 📄 License
-
-This project is provided for educational and portfolio purposes.
+This project is provided for educational and portfolio purposes
