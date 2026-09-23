@@ -64,7 +64,7 @@ async def run_pipeline(file: UploadFile = File(...)):
 
         # 🔥 2. run pipeline đúng thứ tự
         run_script("Engine/job_generator.py")
-        run_script("Engine/routing_generator.py")   # ❗ quan trọng
+        run_script("Engine/routing_generator.py")   
         run_script("Engine/factory_assignment.py")
         run_script("Engine/scheduler.py")
         run_script("Engine/gantt_chart.py")
@@ -91,3 +91,35 @@ from fastapi.responses import FileResponse
 @app.get("/ui")
 def ui():
     return FileResponse("index.html")
+
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/gantt")
+def get_gantt():
+    gantt_path = "gantt_chart.html"
+    if os.path.exists(gantt_path):
+        return FileResponse(gantt_path, media_type="text/html")
+    return {"status": "error", "message": "gantt_chart.html not found"}
+
+@app.get("/download/schedule_final")
+def download_schedule_final():
+    file_path = "database/schedule_final.csv"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="text/csv", filename="schedule_final.csv")
+    return {"status": "error", "message": "schedule_final.csv not found"}
+
+
+@app.get("/download/planned_downtime_schedule")
+def download_planned_downtime_schedule():
+    file_path = "database/planned_downtime_schedule.csv"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="text/csv", filename="planned_downtime_schedule.csv")
+    return {"status": "error", "message": "planned_downtime_schedule.csv not found"}
+
+@app.get("/download/deadline_violation")
+def download_deadline_violations():
+    file_path = "database/deadline_violations.csv"
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="text/csv", filename="deadline_violations.csv")
+    return {"status": "error", "message": "deadline_violations.csv not found"}

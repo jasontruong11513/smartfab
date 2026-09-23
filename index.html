@@ -1,33 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>SmartFab Scheduler</title>
 </head>
 <body>
+    <h1>Upload Demand File</h1>
 
-<h2>Upload Demand File</h2>
+    <input type="file" id="fileInput" accept=".csv">
+    <button onclick="runScheduler()">Run</button>
 
-<input type="file" id="fileInput">
-<button onclick="upload()">Run Schedule</button>
+    <p id="status"></p>
+    <div id="result"></div>
 
-<p id="result"></p>
+    <script>
+        async function runScheduler() {
+            const fileInput = document.getElementById("fileInput");
+            const status = document.getElementById("status");
+            const result = document.getElementById("result");
 
-<script>
-async function upload() {
-    const file = document.getElementById("fileInput").files[0];
+            if (!fileInput.files.length) {
+                status.innerText = "Vui lòng chọn file demand.csv";
+                return;
+            }
 
-    let formData = new FormData();
-    formData.append("file", file);
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
 
-    const res = await fetch("https://smartfab-ai.onrender.com/run", {
-        method: "POST",
-        body: formData
-    });
+            status.innerText = "Đang chạy schedule...";
+            result.innerHTML = "";
 
-    const data = await res.json();
-    document.getElementById("result").innerText = JSON.stringify(data);
-}
-</script>
+            try {
+                const response = await fetch("http://127.0.0.1:8000/run", {
+                    method: "POST",
+                    body: formData
+                });
 
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    status.innerText = "Well Run";
+                    window.open("http://127.0.0.1:8000/gantt", "_blank");
+                }
+
+                    result.innerHTML = `
+                        <p>${data.message || ""}</p>
+                        <p><a href="http://127.0.0.1:8000/gantt" target="_blank">Open Gantt Chart</a></p>
+                        <p><a href="http://127.0.0.1:8000/download/schedule_final" target="_blank">Tải schedule_final.csv</a></p>
+                    `;
+                } else {
+                    status.innerText = "Error";
+                    result.innerHTML = `<pre>${data.message}</pre>`;
+                }
+            } catch (err) {
+                status.innerText = "Cannot Call API";
+                result.innerHTML = `<pre>${err}</pre>`;
+            }
+        }
+    </script>
 </body>
 </html>

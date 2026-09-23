@@ -64,6 +64,9 @@ def main():
     # =============================
     fig.write_html("gantt_chart.html")
 
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    fig.write_html(os.path.join(desktop_path, "gantt_chart.html"))
+
     print("[INFO] Gantt chart saved → gantt_chart.html")
 
 
